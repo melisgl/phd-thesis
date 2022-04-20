@@ -1,0 +1,548 @@
+Starting from the Mogrifier LSTM \citep{melis2019mogrifier}, a state-of-the-art recurrent language model, we introduce several small changes, which involve not only the design of the recurrent cell but the overall architecture, the training objective, and optimization.
+On all datasets, these changes combine to a significant, and in some cases large, effect.
+
+
+\section{Rewired LSTM}
+
+We propose a novel recurrent cell, a slightly tweaked version of the LSTM \citep{hochreiter1997lstm}, as presented in \eqref{eq:lstm}.
+To recap, with $m$ and $n$ being the sizes of the input and the cell state, let the $\LSTM \colon \mathbb{R}^n\times\mathbb{R}^n \times \mathbb{R}^m \to \mathbb{R}^n \times \mathbb{R}^n$ be a function that computes the updated state $\vc$ and output $\vh$ from the previous state $\vcprev$, output $\vhprev$ and the current input $\vx$.
+Concretely, $\LSTM(\vcprev, \vhprev, \vx) = (\vc, \vh)$, where
+{\setlength{\jot}{0.5em}
+\begin{align*}
+  \vi &= \sigma\bigl(\mW^{ix} \vx + \mW^{ih} \vhprev + \vb^i\bigr)\\
+  \vj &= \tanh(\mW^{jx}\vx + \mW^{jh} \vhprev + \vb^j) \\
+  \vf &= \sigma(\mW^{fx} \textcolor{mglblue}{\vx} + \mW^{fh} \vhprev + \vb^f) \\
+  \vc &= \vf \odot \vcprev + \textcolor{mglgreen}{\vi} \odot \vj \\
+  \vo &= \sigma(\textcolor{mglred}{\mW^{ox} \vx + \mW^{oh} \vhprev} + \vb^o) \\
+  \vh &= \vo \odot \tanh(\vc).
+\end{align*}}%
+In the above, $\sigma$ is the logistic sigmoid function, $\odot$ is the elementwise product, $\mW^{**}$ and $\vb^{*}$ are weight matrices and biases.
+As in \Cref{fig:lstm}, the parts altered by the RLSTM (see \Cref{fig:rlstm}) are colour coded.
+
+To accommodate the performance characteristics of parallel hardware, the activations of $\vi$, $\vj$, $\vf$, $\vo$ are in practice often computed by tiling the eight $\mW^{**}$ into one large matrix and multiplying it with the concatenated input and recurrent state $[\vx, \vhprev]$.
+
+\begin{figure}[!t]\centering
+\begin{tikzpicture}[
+    % GLOBAL CFG
+    font=\sf \scriptsize,
+    >=LaTeX,
+    % Styles
+    cell/.style={% For the main box
+        rectangle,
+        rounded corners=5mm,
+        draw,
+        very thick,
+        },
+    operator/.style={%For operators like +  and  x
+        circle,
+        draw,
+        inner sep=-0.5pt,
+        minimum height =.2cm,
+        },
+    function/.style={%For functions
+        ellipse,
+        draw,
+        inner sep=1pt
+        },
+    ct/.style={% For external inputs and outputs
+        circle,
+        draw,
+        line width = .75pt,
+        minimum width=0.75cm,
+        inner sep=1pt,
+        },
+    gt/.style={% For internal inputs
+        rectangle,
+        draw,
+        minimum width=4mm,
+        minimum height=3mm,
+        inner sep=1pt
+        },
+    mylabel/.style={% something new that I have learned
+        font=\scriptsize\sffamily
+        },
+    ArrowC1/.style={% Arrows with rounded corners
+        rounded corners=.20cm,
+        thick,
+        },
+    ArrowC2/.style={% Arrows with big rounded corners
+        rounded corners=.5cm,
+        thick,
+        },
+    ]
+
+%Start drawing the thing...
+    % Draw the cell:
+    \node [cell, minimum height =4.5cm, minimum width=7cm] at (-0.50,0.25){} ;
+
+    % Draw inputs named ibox#
+    \node [gt] (ibox1) at (-2.5,0.75) {$\sigma$};
+    \node [gt] (ibox2) at (-1.5,-0.75) {$\sigma$};
+    \node [gt, minimum width=0.75cm] (ibox3) at (-0.5,-0.75) {tanh};
+    \node [gt] (ibox4) at (0.5,-0.75) {$\sigma$};
+
+   % Draw opérators   named mux# , add# and func#
+    \node [operator] (mux1) at (-2.5,2.0) {\dotinnode};
+    \node [operator] (add1) at (-0.5,2.0) {$+$};
+    \node [operator] (mux2) at (-0.5,1.25) {\dotinnode};
+    \node [operator] (mux3) at (1.5,0) {\dotinnode};
+    \node [function] (func1) at (1.5,0.75) {tanh};
+
+    % Draw External inputs? named as basis c,h,x
+    \node[ct, label={[mylabel,align=center]Prev.\\State}] (c) at (-5.0,2.0) {$\vcprev$};
+    \node[ct, label={[mylabel,align=center]Prev.\\Output}] (h) at (-5.0,-1.5) {$\vhprev$};
+    \node[ct, label={[mylabel]left:Input}] (x) at (-3.25,-3) {$\vx$};
+
+    % Draw External outputs? named as basis c2,h2,x2
+    \node[ct, label={[mylabel]State}] (c2) at (4,2.0) {$\vc$};
+    \node[ct, label={[mylabel]Output}] (h2) at (4,-1.5) {$\vh$};
+    \node[ct, label={[mylabel]left:Output}] (x2) at (2.5,3.5) {$\vh$};
+
+% Start connecting all.
+    %Intersections and displacements are used.
+    % Drawing arrows
+    \draw [ArrowC2] (h) -- ++(2,0);
+    \draw [ArrowC2,mglred] (h)++(2,0) -| (ibox4);
+    \draw [ArrowC1] (c) -- (mux1) -- (add1) -- (c2);
+
+    % Inputs
+    \draw [ArrowC1,mglblue] (x) -- (x |- h)-| (ibox3);
+    \draw [ArrowC1] (h -| ibox1)++(-1.5,0) -| (ibox1);
+    \draw [ArrowC1] (h -| ibox2)++(-1.5,0) -| (ibox2);
+    \draw [ArrowC1] (h -| ibox3)++(-1.5,0) -| (ibox3);
+
+    % Internal
+    \draw [->, ArrowC2] (ibox1) -- (mux1) node[pos=0.4,left] {$f$};
+    \draw [->, ArrowC2,mglgreen] (ibox2) |- (mux2) node[pos=0.1, left, text=black] {$i$};
+    \draw [->, ArrowC1] (ibox3) -- (mux2) node[pos=0.2, left] {$j$};
+    \draw [->, ArrowC2] (ibox4) |- (mux3) node[midway] {$o$};
+
+    \draw [->, ArrowC1] (mux2) -- (add1);
+    \draw [->, ArrowC1] (add1 -| func1)++(-0.5,0) -| (func1);
+    \draw [->, ArrowC2] (func1) -- (mux3);
+
+    %Outputs
+    \draw [-, ArrowC2] (mux3) |- (h2);
+    \draw (c2 -| x2) ++(0,-0.1) coordinate (i1);
+    \draw [-, ArrowC2] (h2 -| x2)++(-0.5,0) -| (i1);
+    \draw [-, ArrowC2] (i1)++(0,0.2) -- (x2);
+
+\end{tikzpicture}
+\caption{Schematic of the LSTM cell in the style of \url{https://colah.github.io/posts/2015-08-Understanding-LSTMs/}.
+All gates are computed from $\vhprev$ and $\vx$.
+Differences from the RLSTM cell are colour coded to ease comparison to \Cref{fig:rlstm}.}
+\label{fig:lstm}
+\end{figure}
+
+\begin{figure}[!t]\centering
+\begin{tikzpicture}[
+    % GLOBAL CFG
+    font=\sf \scriptsize,
+    >=LaTeX,
+    % Styles
+    cell/.style={% For the main box
+        rectangle,
+        rounded corners=5mm,
+        draw,
+        very thick,
+        },
+    operator/.style={%For operators like +  and  x
+        circle,
+        draw,
+        inner sep=-0.5pt,
+        minimum height =.2cm,
+        },
+    function/.style={%For functions
+        ellipse,
+        draw,
+        inner sep=1pt
+        },
+    ct/.style={% For external inputs and outputs
+        circle,
+        draw,
+        line width = .75pt,
+        minimum width=0.75cm,
+        inner sep=1pt,
+        },
+    gt/.style={% For internal inputs
+        rectangle,
+        draw,
+        minimum width=4mm,
+        minimum height=3mm,
+        inner sep=1pt
+        },
+    mylabel/.style={% something new that I have learned
+        font=\scriptsize\sffamily
+        },
+    ArrowC1/.style={% Arrows with rounded corners
+        rounded corners=.20cm,
+        thick,
+        },
+    ArrowC2/.style={% Arrows with big rounded corners
+        rounded corners=.5cm,
+        thick,
+        },
+    ]
+
+%Start drawing the thing...
+    % Draw the cell:
+    \node [cell, minimum height =4.5cm, minimum width=7cm] at (-0.50,0.25){} ;
+
+    % Draw inputs named ibox#
+    \node [gt] (ibox1) at (-2.5,0.75) {$\sigma$};
+    \node [gt] (ibox2) at (-1.5,-0.75) {$\sigma$};
+    \node [gt, minimum width=0.75cm] (ibox3) at (-0.5,-0.75) {tanh};
+    \node [gt] (ibox4) at (0.5,0.75) {$\sigma$};
+
+   % Draw opérators   named mux# , add# and func#
+    \node [function,mglgreen] (cap) at (-1.5,1.25) {min};
+    \node [operator] (capped) at (-0.5,1.25) {\dotinnode};
+    \node [operator] (mux1) at (-2.5,2.0) {\dotinnode};
+    \node [operator] (add1) at (-0.5,2.0) {$+$};
+    \node [operator,mglblue] (mux2) at (-1.0,0) {\dotinnode};
+    \node [operator] (mux3) at (1.5,0) {\dotinnode};
+    \node [function] (func1) at (1.5,0.75) {tanh};
+
+    % Draw External inputs? named as basis c,h,x
+    \node[ct, label={[mylabel,align=center]Prev.\\State}] (c) at (-5.0,2.0) {$\vcprev$};
+    \node[ct, label={[mylabel,align=center]Prev.\\Output}] (h) at (-5.0,-1.5) {$\vhprev$};
+    \node[ct, label={[mylabel]left:Input}] (x) at (-2.25,-3) {$\vx$};
+
+    % Draw External outputs? named as basis c2,h2,x2
+    \node[ct, label={[mylabel]State}] (c2) at (4,2.0) {$\vc$};
+    \node[ct, label={[mylabel]Output}] (h2) at (4,-1.5) {$\vh$};
+    \node[ct, label={[mylabel]left:Output}] (x2) at (2.5,3.5) {$\vh$};
+
+% Start connecting all.
+    %Intersections and displacements are used.
+    % Drawing arrows
+    \draw [ArrowC1,mglred] (add1) -| (ibox4);
+    \draw [ArrowC1] (c) -- (mux1) -- (add1) -- (c2);
+
+    % Inputs
+    \draw [ArrowC1,mglblue] (x) -- (x |- h)-| (ibox2);
+    \draw [ArrowC1] (h) -| (ibox1);
+    \draw [ArrowC1] (h -| ibox2)++(-1.5,0) -| (ibox2);
+    \draw [ArrowC2] (h -| ibox3)++(-1.5,0) -| (ibox3);
+
+    % Internal
+    \draw [->, ArrowC2] (ibox1) -- (mux1) node[pos=0.4,left] {$f$};
+    \draw [->, ArrowC2] (ibox4) |- (mux3) node[midway] {$o$};
+    \draw [->, ArrowC1,mglgreen] (ibox1) |- (cap) node[midway, above right] {$1\!-\!f$};
+
+    \draw [-, ArrowC1,mglgreen] (ibox2) |- (-1.5,0.075);
+    \draw [->, ArrowC1,mglgreen] (-1.5,0.375)++(0,0.1) -- (cap);
+
+    \draw [->, ArrowC1,mglgreen] (cap) -- (capped);
+    \draw [->, ArrowC1] (ibox3) -- (capped);
+    \draw [->, ArrowC2] (capped) -- (add1);
+    \draw [-, ArrowC1,mglblue] (mux2) |- (-1.5,0.375) -| (ibox1);
+    \draw [->, ArrowC1] (add1 -| func1)++(-0.5,0) -| (func1);
+    \draw [->, ArrowC2] (func1) -- (mux3);
+    \draw [->, ArrowC1,mglblue] (ibox2) |- (mux2) node[pos=0.2, left, text=black] {$i$};
+    \draw [->, ArrowC1,mglblue] (ibox3) |- (mux2) node[pos=0.2, left, text=black] {$j$};
+
+    %Outputs
+    \draw [-, ArrowC2] (mux3) |- (h2);
+    \draw (c2 -| x2) ++(0,-0.1) coordinate (i1);
+    \draw [-, ArrowC2] (h2 -| x2)++(-0.5,0) -| (i1);
+    \draw [-, ArrowC2] (i1)++(0,0.2) -- (x2);
+
+\end{tikzpicture}
+\caption{Schematic of the RLSTM cell.
+1. The forget gate \textcolor{mglblue}{$\vf$} is computed from \textcolor{mglblue}{$\vi\odot \vj$}, 2. \textcolor{mglgreen}{$\vi$} is capped at \textcolor{mglgreen}{$1-\vf$}, 3. \textcolor{mglred}{$\vo$} is computed from \textcolor{mglred}{$\vc$}.
+There is an apparent loss of parallelization opportunities due to the increased depth of the computation graph.}
+\label{fig:rlstm}
+\end{figure}
+
+Intuitively, in $\vc = \vf \odot \vcprev + \vi \odot \vj$ the forget gate $\vf$ and the proposed update $\vi \odot \vj$ depend on each other, and computing them in parallel from the same inputs may be partially redundant.
+On the flipside, the parametrization of the proposed update as a product is more expressive than that of the forget gate, so the overall cell update may lose some of the extra expressivity.
+Hence, it makes sense to compute the forget gate from the proposed update instead.
+Note that this reduces the opportunities for parallelization and makes cell updates slower.
+
+Further disregarding efficiency on today's hardware, to reduce parameter count and to encourage storing more information in the cell state $\mathbf{c}$, we compute $\vo$ from $\mathbf{c}$, dropping a potential bypass connection from $\vx$ to $\vh$.
+Finally, to make exploding gradients less likely, we cap $\vi$ at $\mathbf{1-f}$ to ensure $|c_u| \leqslant 1$ for all memory units $u$.
+The update of our Rewired LSTM (RLSTM) cell takes the form
+{\setlength{\jot}{0.5em}
+\begin{align*}
+  \vi &= \sigma\bigl(\mW^{ix} \vx + \mW^{ih} \vhprev + \vb^i\bigr) \\
+  \vj &= \tanh\bigl(\mW^{jx}\vx + \mW^{jh} \vhprev + \vb^j\bigr) \\
+  \vf &= \sigma\bigl(\mW^{fu} \textcolor{mglblue}{\vi\odot \vj} + \mW^{fh} \vhprev + \vb^f\bigr) \\
+  \vc &= \vf \odot \vcprev + \textcolor{mglgreen}{\min(\vi, 1-\vf)} \odot \vj \\
+  \vo &= \sigma\bigl(\textcolor{mglred}{\mW^{oc} \vc} + \vb^o\bigr) \\
+  \vh &= \vo \odot \tanh\bigl(\vc\bigr),
+\end{align*}}%
+where the changes from the LSTM are coloured.
+Based on this altered computation, we define the $\RLSTM$ function similarly to the $\LSTM$ above.
+
+\section{Architecture}
+\label{sec:architecture}
+
+The way recurrent cells are combined can also be improved.
+Here, we opt to use residual connections, where previous works have used stacked LSTMs \citep{merity2017regularizing} or skip connections \citep{melis2019mogrifier}, which feed directly into the final output.
+Along with this change, we apply dropout \citep{hinton2012improving} to the cell output before it is added to the residual branch.
+
+%% To describe the overall architecture more formally, let us denote the mogrification operation \citep{melis2019mogrifier} with the following $\mathbb{R}^n\times\mathbb{R}^m \to \mathbb{R}^n \times \mathbb{R}^m$ function:
+%% \begin{align*}
+%%   \mogrify(\vh,\vx) &= \vh^{2\floor{r/2}}, \vx^{2\floor{(r+1)/2}-1} \\
+%%   \vx^{-1}, \vh^0 &= \vx, \vh \\
+%%   \vx^i &= 2\sigma\bigl(\mQ^{i}\vh^{i-1}\bigr) \odot \vx^{i-2}, &
+%%   \text{for odd i} \in [1..r]\\
+%%   \vh^i &= 2\sigma\bigl(\mR^{i}\vx^{i-1}\bigr) \odot \vh^{i-2},
+%%   & \text{for even i} \in [1..r]
+%% \end{align*}
+%% where the number of rounds $r$ is a hyperparameter, and $\mQ^{i} \in \mathbb{R}^{m\times n}, \mR^{i} \in \mathbb{R}^{n\times m}$ are (possibly low-rank factorized) weight matrices.
+
+To describe the overall architecture more formally, with time steps $t \in [1, 2, \dots]$ and layers $l \in [1..L]$, from the vector of token indices $\vw$  in a fixed vocabulary, the probability distribution of the next token $p(.\tmid \vw_{<t},\mM_t)$ is computed as
+{\setlength{\jot}{0.6em}
+\begin{align*}
+\vc^l_0, \vh^l_0 &= \mathbf{0}, \mathbf{0}\\
+% Kerning is funny, probably due to lining figures. Add some negative kerns.
+\hat{\vx}^0_t\! &= \onehot\bigl(\vw_t\bigr) \mE^{\textrm{in}} \odot \mM^\textrm{in}_t\\
+\hat{\vx}^l_t &= \vh^l_t \odot \mM^{\textrm{cell},l}_t & (l > 1) \\
+\hat{\vh}^l_t &= \vh^l_t \odot \mM^{\textrm{state},l}\\
+\vc^1_t\!, \vh^1_t\! &= \textrm{[R]LSTM}\Bigl(\vc^0_{t-1}, \mogrify\Bigl(\hat{\vh}^1_{t-1}, \hat{\vx}^0_t\Bigr)\Bigr) \\
+\vc^l_t, \vh^l_t &= \textrm{[R]LSTM}\Bigl(\vc^l_{t-1}, \mogrify\Bigl(\hat{\vh}^l_{t-1}, \sum\nolimits_{i=1}^{l-1} \hat{\vx}^i_t\Bigr)\Bigr) \\
+p(.\tmid \vw_{<t},\mM_t) &= \softmax\Bigl(\Bigl(\sum\nolimits_{l=1}^L \hat{\vx}^l_t\Bigr) \odot \mM^{\textrm{out}}_t \mE^{\textrm{out}} + \vb^{\textrm{out}}\Bigr),
+\end{align*}}%
+where we assume that $m=n$ to allow for a residual architecture without projections and use the \emph{mogrify} function as defined in \eqref{eq:mogrify}.
+$\mE^{\textrm{in}}$ and $\mE^{\textrm{out}}$ are the input and output embedding matrices.
+For word-based language modelling, we set $\mE^{\textrm{out}}$ to the transpose of $\mE^{\textrm{in}}$ \citep{DBLP:journals/corr/ZophL16,DBLP:journals/corr/PressW16}.
+$\mM_t$ is the set of individual input, cell, state and output dropout mask matrices $\mM^{\textrm{in}}_t$, $\mM^{\textrm{cell},l}_t$, $\mM^{\textrm{state},l}$ and $\mM^{\textrm{out}}_t$.
+Note that for state dropout, we use the variational dropout of \citet{gal2016theoretically}, thus $\mM^{\textrm{state},l}$ does not depend on $t$.
+In addition, when an RLSTM is used instead of an LSTM cell, we also apply the state dropout mask to $\vc$ in the calculation of $\vo = \sigma(\mW^{oc} (\vc \odot \mM^{\textrm{state},l}) + \vb^o)$.% of the corresponding layers.
+
+
+\section{Objective}
+
+In the objective, we average model predictions over multiple dropout samples:
+\begin{align*}
+\ln p\condp[\big]{\vw_t}{\vw_{<t}} = \ln\biggl(\frac{1}{D} \sum_{d=1}^D p\condp[\Big]{\vw_t}{\vw_{<t},\mM^d_t}\biggr),
+\end{align*}
+where $D$ is the number of samples taken.
+As pointed out by \citet{noh2017regularizing}, when dropout is interpreted as optimizing a variational lower bound on the log likelihood \citep{gal2016theoretically}, this procedure is an instantiation of Importance Weighted Autoencoders \citep{burda2015importance}, which provide a bound tighter than the single-sample ELBO.
+
+\section{Optimization}
+
+To increase the stability of optimization and allow slightly higher learning rates, we use Rectified Adam \citep{liu2019variance}.
+If training diverges, we reset the weights and the optimization state to the previous best checkpoint and multiply the learning rate by 0.9.
+
+\citet{merity2017regularizing} switch to averaging weights at a late stage of optimization when the validation loss has not decreased for a while.
+A similar procedure, called Stochastic Weight Averaging (SWA), was also proposed \citep{izmailov2018averaging}, and corresponding theory was developed in \citet{jain2018parallelizing} under the name of Tail Averaging.
+Here, we employ Two-Tailed Averaging \citep{https://doi.org/10.48550/arxiv.2209.12581}, which has no hyperparameters and provides a good approximation to the optimal weight average at every step of optimization.
+Two-Tailed Averaging (\tta{}) thus requires no tuning and is a much better fit with early stopping, which is what we do on \enwik and \texteight \citep{hutter2012human}.
+While easier to work with, \tta{} does not improve the final results over well-tuned Tail Averaging, which is also used by our baseline, the Mogrifier LSTM.
+
+LSTM and RLSTM forget gates are initialized with Chrono init \citep{tallec2018can} as $\vb^f \sim \ln(\mathcal{U}(1, T_\text{max}-1))$, where $T_\text{max}$ is a tuned hyperparameter.
+Finally, we just train models longer where it is beneficial.
+
+\section{Dynamic Evaluation}
+
+\citet{hinton1987using} proposed fast weights, wherein parameters have a slow- and a fast-changing component.
+Much later, \citet{ba2016using} showed a form of attention to be an instantiation of fast weights.
+Similarly, some forms of meta learning, e.g.\ few-shot adaptation with gradient updates, can be interpreted as fast weights.
+To mimic this setting and gain a particularly general fast weights implementation, it would be desirable to allow the model weights to depend on the context as in $p(x_i\tmid \theta(x_{<i}),x_{<i})$, where the fast weights $\theta(x_{<i})$ are computed with gradient-based updates to the slow weights $\theta_0$.
+However, due to the practical difficulties involved in training batches with per-example inner gradient updates, we eschew fast weights at training time but not when performing evaluation, thus we end up with what is called dynamic evaluation \citep{krause2017dynamic}.
+Here, we present dynamic evaluation results as a proxy for the gradient-based fast weights model.
+
+As argued heuristically above, attention may be interpreted as a particular way of adapting the weights to the context (outer product memory), like the Mogrifier, which has an even more restricted form of update (scaling columns of weight matrices).
+Thus, it is not surprising that \citet{melis2019mogrifier} found that Transformers are better at adapting without changing their weights, leaving less in-context signal for dynamic evaluation to pick up.
+
+\section{Experimental Setup}
+
+We follow the experimental setup of our baseline \citep{melis2019mogrifier}.
+In the following, we list only the most pertinent choices in our experimental setup; everything else is the same as in the baseline.
+Note that the baseline's and our LSTM implementation already includes the capped input gate ($\min(1-\vf,\vi)$) of the RLSTM.
+For the black-box hyperparameter tuner \citep{golovin2017google}, due to the switch to a residual architecture, the baseline's \emph{inter\_layer\_dropout} hyperparameter is replaced with \emph{cell\_output\_dropout} (see $\mM^{\textrm{cell},l}$ in \Cref{sec:architecture}).
+In addition, the top of the Chrono init range $T_{\textit{max}}$ is a new hyperparameter from the $[e^2,e^5]$ range.
+
+For word-level language modelling on Penn Treebank \citep{marcus1993building} with preprocessing by \citep{mikolov2010recurrent}, we trained 2-layer models for about 400 epochs with 8 dropout samples.
+Batch size was 128, and we trained with a BPTT \citep{werbos1990backpropagation} window size of 70.
+Experiments on \wikitexttwo \citep{DBLP:journals/corr/MerityXBS16} were conducted similarly, with the exception of training for 250 epochs and using 4 dropout samples.
+
+For character-based language modelling on Penn Treebank, we trained 2-layer models for 100 epochs with 4 dropout samples, batch size 128, and a BPTT window size of 200.
+On \enwik and \texteight \citep{hutter2012human}, we trained 6-layer models for 200 epochs, whereas the baseline model had 4 layers and was trained for only 29 epochs.
+Batch size was 128, and the BPTT window size was set to 256.
+Increasing the window size had no discernible effect in agreement with the findings of \citet{khandelwal2018sharp}.
+Due to the long time required to train these models, the best hyperparameters were selected from a random pool of 60 candidates.
+Since preliminary experiments indicated that the benefit of using multiple dropout samples was less than 0.01 bpc, we refrained from using more than one dropout sample to save time.
+
+Model evaluation was performed with the standard, deterministic dropout; we refrained from using the more expensive Monte Carlo averaging \citep{gal2016theoretically}.
+The optimal softmax temperature was selected at evaluation time to maximize the validation log-likelihood \citep{melis2018pushing}.
+Finally, we report results with and without dynamic evaluation \citep{krause2017dynamic}.
+
+
+\section{Results}
+
+Due to the aforementioned loss of parallelization opportunities, we found that the RLSTM was about 10\%--30\% slower than the LSTM on NVIDIA p100 GPUs.
+Still, the RLSTM retained a significant advantage over the LSTM even when trained for the same wall clock time.
+
+\begin{table}
+  \setlength{\abovecaptionskip}{0.2\baselineskip}
+  \caption[Word-level perplexities of near state-of-the-art models.]{Word-level perplexities of near state-of-the-art models.
+Names for models with our new results are in bold.
+On \wikitexttwo, the baseline employed Mixture of Softmaxes \citep{yang2017improved}, but we found no benefit to that when used in conjunction with multiple dropout samples.}
+  \label{tab:cb-word-results}
+
+  \centering
+  \small
+  \begin{tabular}{@{}llrlrlr@{}}
+    & & & \multicolumn{2}{c}{No Dyneval} & \multicolumn{2}{c}{Dyneval} \\
+    \cmidrule(lr){4-5} \cmidrule(l){6-7}
+    & & & Val. & Test & Val. & Test \\
+    \midrule
+    \parbox[t]{5mm}{\multirow{4}{*}{\rotatebox[origin=c]{90}{PTB}}}
+    & Transformer-XL \citep{dai2019transformer} & 24M
+        & 56.7 & 54.5 & & \\
+    & Mogrifier LSTM \citep{melis2019mogrifier} & 24M
+        & \nlltoppl{3.95346} & \nlltoppl{3.93124}
+        & \nlltoppl{3.80963} & \nlltoppl{3.80708} \\
+    & \textbf{Mogrifier LSTM} & 24M
+        & \nlltoppl{3.91065} & \nlltoppl{3.88170}
+        & \nlltoppl{3.77302} & \nlltoppl{3.76763} \\
+    & \textbf{Mogrifier RLSTM} & 24M
+        & \nlltoppl{3.88915} & \nlltopplbold{3.86939}
+        & \nlltoppl{3.75818} & \nlltopplbold{3.75805} \\
+    \midrule
+    \parbox[t]{5mm}{\multirow{3}{*}{\rotatebox[origin=c]{90}{WT$2$}}}
+    & Mogrifier LSTM MoS$2$ & 35M
+        & \nlltoppl{4.07235} & \nlltoppl{4.03665}
+        & \nlltoppl{3.70429} & \nlltoppl{3.66475} \\
+    & \textbf{Mogrifier LSTM} & 35M
+        & \nlltoppl{4.05079} & \nlltoppl{4.02249}
+        & \nlltoppl{3.68904} & \nlltoppl{3.65259} \\
+    & \textbf{Mogrifier RLSTM} & 35M
+        & \nlltoppl{4.03738} & \nlltopplbold{4.00680}
+        & \nlltoppl{3.67189} & \nlltopplbold{3.63711} \\
+    \midrule
+  \end{tabular}
+\end{table}
+
+On word-level language modelling (see \Cref{tab:cb-word-results}), only training for half the epochs, our Mogrifier LSTM outperformed the same model in \citet{melis2019mogrifier}, the baseline.
+This was mostly due to the quicker convergence with multiple dropout samples and, to a small degree, to the initialization of the forget gate.
+Note that on 2-layer models, which we used on this task, residual connections are identical to skip connections, which are employed by the baseline.
+On top of these improvements, the RLSTM outperformed the LSTM by a small margin, and we established a new state of the art on both datasets with and without dynamic evaluation.
+
+\begin{table}
+  \setlength{\abovecaptionskip}{0.2\baselineskip}
+  \caption[Bits per character on character-based datasets of near state-of-the-art models.]{Bits per character on character-based datasets of near state-of-the-art models.
+Names for models with our new results are in bold.
+The best test results with and without dynamic evaluation for a given dataset and model size are in bold unless there is a smaller model with a better result.}
+  \label{tab:cb-character-results}
+
+  \centering
+  \small
+  \begin{tabular}{@{}llrllll@{}}
+    & & & \multicolumn{2}{c}{No Dyneval} & \multicolumn{2}{c}{Dyneval} \\
+    \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+    & & & Val. & \multicolumn{1}{r}{Test} & Val. & \multicolumn{1}{r}{Test} \\
+    \midrule
+    \parbox[t]{5mm}{\multirow{3}{*}{\rotatebox[origin=c]{90}{PTB}}}
+    & Mogrifier LSTM \citep{melis2019mogrifier} & 24M
+        & \nlltobpc{0.79616} & \nlltobpc{0.78415}
+        & \nlltobpc{0.76119} & \nlltobpc{0.75439} \\
+    & \textbf{Mogrifier LSTM} & 24M
+        & \nlltobpc{0.78156} & \nlltobpc{0.76895}
+        & \nlltobpc{0.75215} & \nlltobpc{0.74422} \\
+    & \textbf{Mogrifier RLSTM} & 24M
+        & \nlltobpc{0.77313} & \nlltobpcbold{0.75999}
+        & \nlltobpc{0.74369} & \nlltobpcbold{0.73561} \\
+
+    \midrule
+    \parbox[t]{5mm}{\multirow{12}{*}{\rotatebox[origin=c]{90}{\enwik}}}
+    & Transformer-XL (d24) \citep{dai2019transformer} & 277M
+        & & 0.993 & & 0.940 \\
+    & Longformer \citep{beltagy2020longformer} & 277M
+        & & \textbf{0.97} & & \\
+    \cmidrule(l){2-7}
+    & Transformer-XL (d18) \citep{dai2019transformer} & 88M
+        & & 1.03 & & \\
+    & Longformer \citep{beltagy2020longformer} & 102M
+        & & \textbf{0.99} & & \\
+    & Mogrifier LSTM \citep{melis2019mogrifier} & 96M
+        & \nlltobpc{0.76935} & \nlltobpc{0.77792}
+        & \nlltobpc{0.69911} & \nlltobpc{0.68516} \\
+    & \textbf{Mogrifier LSTM} & 96M
+        & \nlltobpc{0.73297} & \nlltobpc{0.74346}
+        & \nlltobpc{0.66784} & \nlltobpc{0.65592} \\
+    & \textbf{Mogrifier RLSTM} & 96M
+        & \nlltobpc{0.71288} & \nlltobpc{0.72236}
+        & \nlltobpc{0.65992} & \nlltobpcbold{0.64803} \\
+    \cmidrule(l){2-7}
+    & Transformer-XL (d12) \citep{dai2019transformer} & 41M
+        & & 1.06 & & 1.01 \\
+    & Longformer \citep{beltagy2020longformer} & 41M
+        & 1.02 & \textbf{1.00} & & \\
+    & Mogrifier LSTM \citep{melis2019mogrifier}& 48M
+        & \nlltobpc{0.78663} & \nlltobpc{0.79413}
+        & \nlltobpc{0.71751} & \nlltobpc{0.70177} \\
+    & \textbf{Mogrifier LSTM} & 48M
+        & \nlltobpc{0.75051} & \nlltobpc{0.75813}
+        & \nlltobpc{0.68495} & \nlltobpc{0.67213} \\
+    & \textbf{Mogrifier RLSTM} & 48M
+        & \nlltobpc{0.73502} & \nlltobpc{0.74228}
+        & \nlltobpc{0.68362} & \nlltobpcbold{0.67110} \\
+
+    \midrule
+    \parbox[t]{5mm}{\multirow{6}{*}{\rotatebox[origin=c]{90}{\texteight}}}
+    & Transformer-XL (d24) \citep{dai2019transformer} & 277M
+        & & \textbf{1.08} & & \textbf{1.038} \\
+    \cmidrule(l){2-7}
+    & \textbf{Mogrifier LSTM} & 96M
+        & \nlltobpc{0.71598} & \nlltobpc{0.76681}
+        & \nlltobpc{0.67725} &  \nlltobpc{0.72559} \\
+    & \textbf{Mogrifier RLSTM} & 96M
+        & \nlltobpc{0.70855} & \nlltobpc{0.75983}
+        & \nlltobpc{0.67595} & \nlltobpc{0.72363} \\
+    \cmidrule(l){2-7}
+    & Longformer \citep{beltagy2020longformer} & 41M
+        & 1.04 & \textbf{1.10} & & \\
+    & \textbf{Mogrifier LSTM} & 48M
+        & \nlltobpc{0.73670} & \nlltobpc{0.79002}
+        & \nlltobpc{0.69642} & \nlltobpc{0.74544} \\
+    & \textbf{Mogrifier RLSTM} & 48M
+        & \nlltobpc{0.72362} & \nlltobpc{0.77562}
+        & \nlltobpc{0.69199} & \nlltobpc{0.74048} \\
+    \midrule
+  \end{tabular}
+\end{table}
+
+\Cref{tab:cb-character-results} shows our results on character-based language modelling.
+On Penn Treebank, again only training for half the epochs, we significantly boosted the results of the state-of-the-art baseline model by using multiple dropout samples and to a smaller degree by tuning the forget gate initialization.
+Our results were then further improved by switching to the RLSTM.
+
+Our results on \enwik and \texteight were boosted greatly.
+However, some corners were cut due the high computational cost, thus the results can likely be improved further e.g.\ with proper tuning (instead of random sampling), by training even longer, and by using multiple dropout samples.
+We heuristically estimate a 0.015--0.03 bpc suboptimality due to these factors only.
+
+Taking advantage of Two-Tailed Averaging's (\tta{}) online estimates and the fact that hyperparameters were selected randomly, we can estimate the contribution of training longer (200 vs 29 epochs).
+For example, in the 48M parameter setting on \enwik, we observed that training longer lowered the validation bpc by about 0.035, leaving another 0.016 bpc for the contributions of residual connections and the forget gate initialization.
+Finally, the RLSTM outperformed the LSTM by 0.022 bpc.
+Similar relative contributions were observed in all other settings on \enwik and \texteight.
+
+Some of the changes we made increased primarily the stability of training and the efficiency of hyperparameter tuning without discernible effect on the final results.
+Using Rectified Adam and restarting from a previous checkpoint on divergence greatly reduced the number of failed runs, and \tta{} made tuning easier by removing a hyperparameter while opening the door for early stopping due to its online nature.
+
+We found that in the early stages using $D$ dropout samples allowed optimization to make more progress per step but less than the progress with a single sample and $D$ times the number of steps.
+On datasets that are on the smaller side and where dropout rates are high, in the late stages of optimization, the multi-sample objective proved better in terms of validation perplexity.
+However, that was not the case on \enwik and \texteight, possibly due to being bottlenecked by other issues such as the length of optimization.
+
+\section{Conclusions}
+
+\mglconclusion
+Just because some recurrent models suffer from being hard to optimize and inefficient on today's hardware, they are not necessarily bad models of language.
+We demonstrated this by the extent to which these models can still be improved by a combination of a slightly better recurrent cell, architecture, objective, as well as optimization.
+In the process, we established a new state of the art for language modelling on small datasets and on \enwik with dynamic evaluation.
+
+We strengthened purely recurrent models' language modelling results on a varied collection of datasets using various techniques and a slightly novel recurrent cell.
+These new baselines better represent the models' ability but do not necessarily allow for a fair comparison to previous results.
+In particular, while we cited and listed results of the best transformer-based models, we did not evaluate them ourselves using the same methodology.
+This is especially obvious where previous works did not report dynamic evaluation results.
+The comparisons we made to recurrent models were also rather targeted: we focussed solely on the state-of-the-art purely recurrent model, the Mogrifier LSTM, and ignored both the less performant models and those combined with attention \citep{merity2019single,DBLP:journals/corr/abs-2102-12459}.
+Nevertheless, the combination of our strong results and little novelty highlight the extent to which minor details and computational efficiency on current hardware affect model comparisons.
+
+With that in mind, the primary contribution of this chapter is to apply more resources to designing and evaluating recurrent models and to provide stronger baselines for model comparisons.
+Second, the set of improvements to models of the recurrent cell, overall architecture, training objective, and optimization that we employed or proposed might inform future practice and research.
+In addition, the fact that two quite different architectures (recurrent and attention-based) appear to perform similarly in terms of perplexity suggests that bigger changes are necessary to develop data-efficient language models.
+
+\mglsep

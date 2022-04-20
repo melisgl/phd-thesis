@@ -1,0 +1,16 @@
+*~
+figures/
+/*.aux
+/*.auxlock
+/paper.figlist
+/*.log
+/*.out
+/*.bbl
+/*.blg
+/tikz/
+/*.lof
+/*.lot
+/*.toc
+/*.fls
+/svg-inkscape/
+/*.fdb_latexmk

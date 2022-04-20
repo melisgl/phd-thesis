@@ -1,0 +1,73 @@
+#study_name = '71bac949bc42+_tune_ptb_fast_T_lstm_d2_l40x0_hs128_t40_dreg1_kl_Cn0yd'
+#study_name = '71bac949bc42+_tune_ptb_fast_T_lstm_d2_l40x0_hs128_t40_dreg16_kl_QYjuo'
+#study_name = '71bac949bc42+_tune_ptb_fast_T_lstm_d2_l40x0_hs128_t40_dreg16_renyi_Cs5sj'
+##study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs128_t80_dreg1_kl_Ldbl7'
+##study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs128_t80_dreg16_kl_BjTfj'
+##study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs128_t80_dreg16_renyi_JOXvH'
+##study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs256_t40_dreg1_kl0.0_kl_A7bCn'
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs256_t40_dreg16_kl0.0_kl_jPnJk'
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs256_t40_dreg16_kl0.0_renyi_l7k4E'
+##study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs256_t80_dreg1_kl_DRDHC'
+##study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs256_t80_dreg16_kl_jSVsU'
+##study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l40x0_hs256_t80_dreg16_renyi_b9siL'
+
+
+# vimco hs128 t40
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs128_t40_vimco1_kl0.0_kl_rMFXs'
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs128_t40_vimco16_kl0.0_kl_lkxaK'
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs128_t40_vimco16_kl0.0_renyi_HIz55'
+# vimco hs128 t80
+#study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs128_t80_vimco1_kl_ksuTs'
+#study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs128_t80_vimco16_kl_mK81M'
+#study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs128_t80_vimco16_renyi_ySvbu'
+
+# vimco hs256 t40
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs256_t40_vimco1_kl0.0_kl_yOGPF'
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs256_t40_vimco16_kl0.0_kl_nVIgY'
+#study_name = '96591b4eba41_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs256_t40_vimco16_kl0.0_renyi_Ui6Yp'
+# vimco hs256 t80
+#study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs256_t80_vimco1_kl_gE4A7'
+#study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs256_t80_vimco16_kl_LZhzk'
+#study_name = 'a27cb5fa529f_tune_ptb_fast_pareto_T_lstm_d2_l8x10_hs256_t80_vimco16_renyi_bV8AR'
+
+### /8
+
+# bs1024
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs1024_hs128_t40_dreg1_kl_oL5lR'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs1024_hs128_t40_dreg16_kl_SJo71'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs1024_hs128_t40_dreg16_renyi_Am4QZ'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs1024_hs128_t40_vimco1_kl_YmCEr'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs1024_hs128_t40_vimco16_kl_XzqBG'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs1024_hs128_t40_vimco16_renyi_CgyVh'
+# ns64
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs256_hs128_t40_dreg64_kl_RyKPx'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs256_hs128_t40_dreg64_renyi_DfT1s'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs256_hs128_t40_vimco64_kl_PVjAH'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs256_hs128_t40_vimco64_renyi_gbgeI'
+
+# k1 with 16x256=4096 batch size
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs4096_hs128_t40_dreg1_kl_xj3YN'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs4096_hs128_t40_vimco1_kl_kDyeg'
+
+# bs64
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs64_hs128_t40_dreg1_kl_EnRbl'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs64_hs128_t40_dreg16_kl_HX6wR'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs64_hs128_t40_dreg16_renyi_tO7r9'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs64_hs128_t40_vimco1_kl_GVrM4'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs64_hs128_t40_vimco16_kl_NUbpu'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs64_hs128_t40_vimco16_renyi_wwwGA'
+
+# with l2
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_V_l2_lstm_d2_l40x0_bs256_hs128_t40_dreg1_kl_qnujH'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_V_l2_lstm_d2_l40x0_bs256_hs128_t40_dreg16_kl_GyGuy'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_V_l2_lstm_d2_l40x0_bs256_hs128_t40_dreg16_renyi_EX8D9'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_V_l2_lstm_d2_l8x10_bs256_hs128_t40_vimco1_kl_ImZgp'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_V_l2_lstm_d2_l8x10_bs256_hs128_t40_vimco16_kl_3Q7ai'
+#study_name = 'e45b4fb4bf33+_tune_ptb_fast_V_l2_lstm_d2_l8x10_bs256_hs128_t40_vimco16_renyi_ycGwH'
+
+l40x0_bs1024_hs128_t40_dreg1_kl (e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs1024_hs128_t40_dreg1_kl_oL5lR)
+l40x0_bs1024_hs128_t40_dreg16_kl (e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs1024_hs128_t40_dreg16_kl_SJo71)
+l40x0_bs1024_hs128_t40_dreg16_renyi (e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l40x0_bs1024_hs128_t40_dreg16_renyi_Am4QZ)
+l8x10_bs1024_hs128_t40_vimco1_kl (e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs1024_hs128_t40_vimco1_kl_YmCEr)
+l8x10_bs1024_hs128_t40_vimco16_kl (e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs1024_hs128_t40_vimco16_kl_XzqBG)
+l8x10_bs1024_hs128_t40_vimco16_renyi (e45b4fb4bf33+_tune_ptb_fast_T_lstm_d2_l8x10_bs1024_hs128_t40_vimco16_renyi_CgyVh)

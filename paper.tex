@@ -1,0 +1,933 @@
+\documentclass[12pt,a4paper,oneside]{book}
+
+\usepackage{mglthesis}
+
+\def\ucllogoontitlepage{1}
+
+%% % Golden ratio for the textblock. A4 is 210mm x 297mm. (297 - 35 - 35)
+%% % / (210 - 40 - 30) is about 1.618. 80 characters per line. 36 lines
+%% % with 18pt baselineskip.
+%% \usepackage[inner=40mm,outer=30mm,top=35mm,bottom=35mm,
+%%   headheight=20mm,marginparwidth=20mm]{geometry}
+
+% Left margin: 1/5 of width, right margin: 1/6. 75 characters per
+% line. Visual top margin (to the midline of the top line) is equal to
+% the left margin. Bottom margin is random. Text block is golden
+% ratio.
+
+%% % 35 lines with 18pt baselineskip.
+%% \usepackage[inner=42mm,outer=35mm,top=37.77mm,bottom=38.1mm,
+%%   headheight=20mm,marginparwidth=20mm,footskip=32pt]{geometry}
+
+%% % 36 lines with 17.5pt baselineskip.
+%% \usepackage[inner=42mm,outer=35mm,top=37.77mm,bottom=38.1mm,
+%%   headheight=20mm,marginparwidth=20mm,footskip=31pt]{geometry}
+
+%% % 37 lines with 17pt baselineskip.
+%% \usepackage[inner=42mm,outer=35mm,top=37.77mm,bottom=39.0mm,
+%%   headheight=20mm,marginparwidth=20mm,footskip=32pt]{geometry}
+
+%% % 38 lines with 16.5pt baselineskip.
+%% \usepackage[inner=42mm,outer=35mm,top=37.77mm,bottom=39.7mm,
+%%   headheight=20mm,marginparwidth=20mm,footskip=31pt]{geometry}
+
+% 38 lines with 16.2pt baselineskip (3*x-height, which is 5.4pt).
+\usepackage[inner=42mm,outer=35mm,top=37.77mm,bottom=37.5mm,
+  headheight=20mm,marginparwidth=20mm,footskip=31pt]{geometry}
+
+\usepackage{eso-pic}
+
+\makeatletter
+\newcommand*\currentfontsize{\dimexpr\f@size pt\relax}
+\makeatother
+
+\onehalfspacing
+
+\ifxetex
+  \usepackage{xintexpr}
+  \renewcommand{\textls}[2][0]
+               {{\addfontfeature{LetterSpace=\xinttheexpr0.1*#1\relax}#2}}
+\fi
+\ifluatex
+  \usepackage{xintexpr}
+  \renewcommand{\textls}[2][0]
+               {{\addfontfeature{LetterSpace=\xinttheexpr0.1*#1\relax}#2}}
+\fi
+
+
+%%%% Title page
+
+\usepackage{svg}
+\usepackage{anyfontsize}
+\usepackage{color}
+\usepackage{xcolor}
+\definecolor{ucllogocolor}{RGB}{35,31,32}
+\definecolor{titlepagefg}{RGB}{229,225,226}
+\definecolor{mglred}{RGB}{163,65,48}
+\definecolor{mglgreen}{RGB}{37,125,49}
+\definecolor{mglblue}{RGB}{65,48,163}
+\definecolor{mglred2}{RGB}{131,51,39}
+\definecolor{mglredsmall}{RGB}{180,45,25}
+
+
+%%%% Math
+
+\usepackage{bbm}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+\usepackage{nicefrac}
+\usepackage{centernot}
+\allowdisplaybreaks
+
+
+%%%% Floats (Tables, Figures, Algorithms)
+
+\usepackage[font=small]{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{siunitx}
+\sisetup{detect-all}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm,algorithmicx}
+\newcommand*\Let[2]{\State #1 $\gets$ #2}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usepackage{float}
+\renewcommand{\floatpagefraction}{.8}
+% https://tex.stackexchange.com/questions/28556/how-to-place-a-float-at-the-top-of-a-floats-only-page
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpbot}{0pt plus 50fil}
+\makeatother
+
+
+%%%% Misc
+
+\usepackage{xspace}
+\usepackage{marvosym}
+
+
+%%%% Tikz and Pgfplots
+
+\usepackage{tikz}
+\usepackage{pgfplots,tikz,pgfplotstable}
+\pgfplotsset{compat=1.9}
+\usetikzlibrary{positioning, fit, arrows.meta, shapes}
+\usetikzlibrary{external}
+\tikzexternalize[prefix=tikz/]
+\tikzset{external/optimize command away=\AddToShipoutPictureBG}
+
+% https://tex.stackexchange.com/questions/84127/correctly-align-vertical-text-on-a-baseline-in-pgfplots
+\def\mystrut{\vphantom{hg}}
+% https://tex.stackexchange.com/questions/204395/add-custom-entry-into-legend-in-pgfplot
+\pgfplotsset{
+    legend image with text/.style={
+        legend image code/.code={%
+            \node[anchor=center] at (0.3cm,0cm) {#1};
+        }
+    },
+}
+\pgfplotsset{%
+  redweak/.style = {red!70!black,densely dotted,
+                    mark=o, mark options={scale=0.7,solid}}}
+\pgfplotsset{%
+  redhollow/.style = {red!100!white,densely dashed,
+                      mark=o, mark options={scale=1.0,solid}}}
+\pgfplotsset{%
+  redsolid/.style = {red!50!white,mark=*,mark options={scale=1.0,solid}}}
+
+\pgfplotsset{%
+  orangeweak/.style = {orange!70!black,densely dotted,mark=diamond,
+                       mark options={scale=1.2*0.7,solid}}}
+\pgfplotsset{%
+  orangehollow/.style = {orange!100!white,densely dashed,mark=diamond,
+                         mark options={scale=1.2,solid}}}
+\pgfplotsset{%
+  orangesolid/.style = {orange!50!white,mark=diamond*,
+                        mark options={scale=1.2,solid}}}
+
+\pgfplotsset{%
+  violetweak/.style = {violet!70!black,densely dotted,mark=diamond,
+                       mark options={scale=1.2*0.7,solid}}}
+\pgfplotsset{%
+  violethollow/.style = {violet!100!white,densely dashed,mark=diamond,
+                         mark options={scale=1.2,solid}}}
+\pgfplotsset{%
+  violetsolid/.style = {violet!50!white,mark=diamond*,
+                        mark options={scale=1.2,solid}}}
+
+\pgfplotsset{%
+  blueweak/.style = {blue!70!black,densely dotted,mark=square,
+                     mark options={scale=0.8*0.7,solid}}}
+\pgfplotsset{%
+  bluehollow/.style = {blue!100!white,densely dashed,mark=square,
+                       mark options={scale=0.8,solid}}}
+\pgfplotsset{%
+  bluesolid/.style = {blue!50!white,mark=square*,
+                      mark options={scale=0.8,solid}}}
+
+\pgfplotsset{%
+  tealweak/.style = {teal!70!black,densely dotted,mark=triangle,
+                     mark options={scale=1.2*0.7,solid}}}
+\pgfplotsset{%
+  tealhollow/.style = {teal!100!white,densely dashed,mark=triangle,
+                       mark options={scale=1.2,solid}}}
+\pgfplotsset{%
+  tealsolid/.style = {teal!50!white,mark=triangle*,
+                      mark options={scale=1.2,solid}}}
+
+\newcommand*\circled[2]{\tikz[baseline=(char.base)]{
+    \node[shape=circle,draw,inner sep=#2pt] (char) {#1};}}
+
+\pgfplotscreateplotcyclelist{acycle}{%
+solid, every mark/.append style={solid, fill=gray}, mark=*\\%
+dotted, every mark/.append style={solid, fill=gray}, mark=square*\\%
+densely dotted, every mark/.append style={solid, fill=gray}, mark=otimes*\\%
+loosely dotted, every mark/.append style={solid, fill=gray}, mark=triangle*\\%
+dashed, every mark/.append style={solid, fill=gray},mark=diamond*\\%
+loosely dashed, every mark/.append style={solid, fill=gray},mark=*\\%
+densely dashed, every mark/.append style={solid, fill=gray},mark=square*\\%
+dashdotted, every mark/.append style={solid, fill=gray},mark=otimes*\\%
+dashdotdotted, every mark/.append style={solid},mark=star\\%
+densely dashdotted,every mark/.append style={solid, fill=gray},mark=diamond*\\%
+}
+
+
+%%%% New environments, commands
+
+%% \newtheoremstyle{mglthm}
+%%                 {\baselineskip}% Space above
+%%                 {\baselineskip}% Space below
+%%                 {\itshape}% Body font
+%%                 {}% Indent amount
+%%                 {\bfseries}% Theorem head font
+%%                 {:}% Punctuation after theorem head
+%%                 {.5em}% Space after theorem head
+%%                 {}% Theorem head spec (can be left empty, meaning ‘normal’)
+%% \theoremstyle{mglthm}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+%% Use slanted leq and geq by default.
+\let\savedleq=\leq
+\let\savedgeq=\geq
+\let\leq=\leqslant
+\let\geq=\geqslant
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\softmax}{softmax}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclareMathOperator*{\diag}{diag}
+
+%% % https://tex.stackexchange.com/questions/29834/closed-square-root-symbol
+%% % The magic numbers are font specific.
+%% \let\oldsqrt\sqrt
+%% \def\sqrt{\mathpalette\DHLhksqrt}
+%% \def\DHLhksqrt#1#2{%
+%% \setbox0=\hbox{$#1\oldsqrt{#2}$}\dimen0=\ht0
+%% \advance\dimen0-0.2\ht0
+%% \setbox2=\hbox{\vrule height\ht0 depth -\dimen0 width 0.66pt}%
+%% {\box0\lower0.66pt\box2}}
+
+%% Like overset but uses less vertical space.
+\makeatletter
+\newcommand{\oset}[3][0ex]{%
+  \mathrel{\mathop{#3}\limits^{
+    \vbox to#1{\kern-3\ex@
+    \hbox{$\scriptstyle#2$}\vss}}}}
+\makeatother
+\newcommand{\pto}{\oset{p}\to}
+
+%% \newcommand\dif{\mathop{}\!d}
+\newcommand\dif{\,d}
+\newcommand{\Loss}{\mathcal{L}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\Nb}{\mathbb{N}}
+\newcommand{\Rb}{\mathbb{R}}
+\newcommand{\I}{\mathrm{I}}
+\newcommand{\ind}{\mathbb{I}}
+\newcommand{\indcia}{\mathbbm{1}_{[1,k]}(i)z}
+\newcommand{\E}{\mathop{{}\mathbb{E}}}
+% Reduce the space around | in p(x \mid y)
+\newcommand{\tmid}{\hspace{0.08em}|\hspace{0.11em}}
+\newcommand{\divides}{\mathrel{|}}
+\DeclarePairedDelimiterX{\condp}[2]{(}{)}{%
+  #1\;\delimsize|\penalty 0 \;#2%
+}
+\DeclareMathOperator{\KL}{KL}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\penalty 0 \;#2%
+}
+\newcommand{\Div}{\infdivx}
+\DeclareMathOperator{\var}{var}
+\DeclareMathOperator\supp{supp}
+\DeclareMathOperator{\elbo}{\mathrm{ELBO}}
+\newcommand{\w}{\omega}
+\newcommand{\vw}{\mathbf{w}}
+\newcommand{\vx}{\mathbf{x}}
+\newcommand{\vc}{\mathbf{c}}
+\newcommand{\vh}{\mathbf{h}}
+\newcommand{\vy}{\mathbf{y}}
+\newcommand{\vb}{\mathbf{b}}
+\newcommand{\vf}{\mathbf{f}}
+\newcommand{\vi}{\mathbf{i}}
+\newcommand{\vj}{\mathbf{j}}
+\newcommand{\vo}{\mathbf{o}}
+\newcommand{\va}{\mathbf{a}}
+\newcommand{\vu}{\mathbf{u}}
+\newcommand{\vecv}{\mathbf{v}}
+\newcommand{\vcprev}{\mathbf{c}_{\textit{prev}}}
+\newcommand{\vhprev}{\mathbf{h}_{\textit{prev}}}
+\newcommand{\mA}{\mathbf{A}}
+\newcommand{\mX}{\mathbf{X}}
+\newcommand{\mW}{\mathbf{W}}
+\newcommand{\mQ}{\mathbf{Q}}
+\newcommand{\mR}{\mathbf{R}}
+\newcommand{\mE}{\mathbf{E}}
+\newcommand{\mM}{\mathbf{M}}
+\newcommand{\OL}{\Delta}
+\newcommand{\dotinnode}{\raisebox{-4pt}{$\cdot$}}
+\DeclareMathOperator*{\LSTM}{LSTM}
+\DeclareMathOperator*{\mLSTM}{mLSTM}
+\DeclareMathOperator*{\RLSTM}{RLSTM}
+\DeclareMathOperator*{\mogrify}{mogrify}
+\DeclareMathOperator*{\Mogrify}{Mogrify}
+\DeclareMathOperator*{\onehot}{onehot}
+\DeclareMathOperator*{\dec}{dec}
+%% \DeclareMathOperator*{\tanh}{tanh}
+\newcommand{\Lim}[1]{\raisebox{0.5ex}{\scalebox{1.0}{$\displaystyle \lim_{#1}\;$}}}
+\newcommand{\indep}{\perp \!\!\! \perp}
+\newcommand{\notindep}{\not\!\perp\!\!\!\perp}
+
+\newcommand{\tta}{\textlf{2}TA}
+
+\newcommand*{\circledtiny}[2]{\raisebox{0.2ex}{\circled{\tiny#1}{#2}}}
+\newcommand{\smallsharp}{\scalebox{0.6}{\raisebox{0.2ex}{$\sharp$}}}
+\newcommand{\hardposteriorcircled}{%
+  \raisebox{0.2ex}{\circled{$\smallsharp$}{0.8}}}
+\newcommand{\expansioncircled}{%
+  \raisebox{0.1ex}{\circled{\small$\times$}{-0.5}}}
+\newcommand{\equalcircled}{%
+  \raisebox{1.0ex}{\circled{\raisebox{-0.7ex}{\tiny$=$}}{0.5}}}
+
+\newcommand{\alphanorm}{{\bar{\alpha}}}
+\newcommand{\raisedcomma}{\raisebox{0.5ex}{$,$}}
+\newcommand{\alphasharp}{{\alpha\smallsharp}}
+\newcommand{\alphajoint}{{\alpha\raisedcomma}}
+\newcommand{\alphacond}{{\alpha|}}
+\newcommand{\alpharange}{{1:\alpha}}
+\newcommand{\xalpha}{{x_\alpharange}}
+\newcommand{\calpha}{{\ceil{\alpha}}}
+\newcommand{\calpharange}{{1:\calpha}}
+\newcommand{\xcalpha}{{x_\calpharange}}
+
+\newcommand{\ptb}{PTB\xspace}
+\newcommand{\wikitexttwo}{Wikitext-$2$\xspace}
+\newcommand{\enwik}{Enwik8\xspace}
+\newcommand{\texteight}{Text8\xspace}
+\newcommand{\nlltoppl}[1]{%
+  \pgfmathparse{exp(#1)}%
+  \pgfmathprintnumber[fixed,zerofill,precision=1,assume math mode=true]{\pgfmathresult}}
+\newcommand{\nlltopplbold}[1]{%
+  \pgfmathparse{exp(#1)}%
+  \textbf{\pgfmathprintnumber[fixed,zerofill,precision=1,assume math mode=true]{\pgfmathresult}}}
+\newcommand{\nlltobpc}[1]{%
+  \pgfmathparse{log2(exp(#1))}%
+  \pgfmathprintnumber[fixed,zerofill,precision=3,assume math mode=true]{\pgfmathresult}}
+\newcommand{\nlltobpcbold}[1]{%
+  \pgfmathparse{log2(exp(#1))}%
+  \textbf{\pgfmathprintnumber[fixed,zerofill,precision=3,assume math mode=true]{\pgfmathresult}}}
+
+\newcommand{\betavae}{$\upbeta$-VAE\xspace}
+\newcommand{\cX}{\mathcal{X}}
+
+\DeclareMathOperator*{\avg}{avg}
+\newcommand*{\SP}{\mathrm{SP}}
+\newcommand*{\natnum}{\mathbb{N}}
+\newcommand*{\natnumzero}{\mathbb{N}_0}
+
+\newcommand\ts{\hspace{0.2em}/\hspace{0.2em}}
+
+
+%%%% Todolist
+
+\usepackage{xargs} % Use more than one optional parameter in new commands
+\usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
+
+\makeatletter
+\renewcommand{\todo}[2][]{\tikzexternaldisable\@todo[#1]{#2}\tikzexternalenable}
+\newcommand\nobreakpar{\par\nobreak\@afterheading}
+\makeatother
+
+% colorbox with no margins
+\newcommand{\reducedstrut}{\vrule width 0pt height .9\ht\strutbox depth .9\dp\strutbox\relax}
+\newcommand{\colorboxx}[2]{%
+  \begingroup%
+  \setlength{\fboxsep}{0pt}%
+  \colorbox{#1}{\reducedstrut#2\/}%
+  \endgroup
+}
+\newcommandx{\mgl}[2][1=]{\colorboxx{blue!30}{\tiny\,}\todo[color=blue!30,#1]{MG: #2}}
+\newcommandx{\tk}[2][1=]{\colorboxx{brown!30}{\tiny\,}\todo[color=brown!30,#1]{TK: #2}}
+\newcommandx{\pb}[2][1=]{\colorboxx{gray!30}{\tiny\,}\todo[color=gray!30,#1]{PB: #2}}
+\newcommandx{\cd}[2][1=]{\colorboxx{cyan!30}{\tiny\,}\todo[color=cyan!30,#1]{CD: #2}}
+\newcommandx{\jr}[2][1=]{\colorboxx{red!30}{\tiny\,}\todo[color=red!30,#1]{JR: #2}}
+\newcommand{\inlinetodo}[1]{\textcolor{blue}{\bf \small #1}}
+
+
+\begin{document}
+
+\begin{titlepage}
+  % Line right edge up the the L of the UCL logo.
+  \newgeometry{inner=47mm,outer=31mm,bottom=20mm}
+  \AddToShipoutPictureBG*{%
+    \AtPageLowerLeft{%
+      \color{titlepagefg}
+      \rule{\paperwidth}{\paperheight}%
+    }%
+    \ifnum \ucllogoontitlepage = 0
+      \AtPageUpperLeft{%
+        \color{ucllogocolor}%
+        \rule[-\paperheight]{\paperwidth}{\paperheight}%
+      }%
+    \else%
+      \AtPageLowerLeft{%
+        \includesvg[width=\paperwidth]{ucl.svg}
+      }%
+      \AtPageUpperLeft{%
+        \color{ucllogocolor}%
+        \rule[-0.8\paperheight]{\paperwidth}{0.81\paperheight}%
+      }%
+    \fi%
+  }%
+  \color{titlepagefg}
+  \setstretch{1.0}
+  \begin{flushleft}
+    % 12.115pt is the visual x-height with 25pt EB Garamond.
+    % 17.759pt is the visual cap height with 25pt EB Garamond.
+    % 4*12.115pt=48.46pt
+    % the title page.
+    {\fontsize{25pt}{48.46pt}
+      \sc\titlefont\textls[100]{\\[-32pt]
+      Towards\, Better\\
+      Generative\, Models\\
+      {\fontsize{23pt}{48.46pt}\selectfont\textls[0]{%
+        \hbox to 0pt{\hss \textup{\textit{of}}\:}}}%
+      Language\\}}
+    % 5*12.115pt=60.575pt
+    {\fontsize{23pt}{60.575pt}\titlefont
+      \color{mglred}
+      \textit{Gábor Melis}\\}
+  \end{flushleft}
+  \begin{flushright}
+    \ifnum \ucllogoontitlepage = 0
+      \vspace{121.15pt+48.46pt}
+    \else
+      \vspace{121.15pt}
+    \fi
+    % This line spread is the same as above, but the font size is such
+    % that the leading is 2*12.115pt=24.23pt.
+    {\fontsize{12.5pt}{24.23pt}\titlefont
+      A thesis presented for the degree of\\
+      Doctor of Philosophy\\[0.5\baselineskip]
+      % 11.5pt/12.5 = 23pt/25pt
+      {\fontsize{11.5pt}{24.23pt}\textit{at the}}\\[0.5\baselineskip]
+%%     {\large Centre for Mathematics, Physics and Engineering \\
+%%       in the Life Sciences and Experimental Biology\\
+%%       University College London,\\
+%%       United Kingdom\\}
+      Computer Science Department,\\
+      University College London,\\
+      United Kingdom\\[1\baselineskip]
+      {\fontsize{11.5pt}{24.23pt}\textit{April, 2023}}}
+  \end{flushright}
+\end{titlepage}
+
+\begin{titlepage}
+\vspace*{16\groundskip}
+\noindent I, Gábor Melis, confirm that the work presented in this thesis is my own.
+Where information has been derived from other sources, I confirm that this has been indicated in the thesis.
+\end{titlepage}
+
+% UCL says that page 1 must be the title page.
+\setcounter{page}{3}
+
+\chapter*{Abstract}
+
+\mglepigraph{0.6}{A man who could afford fifty dollars had a pair of boots that'd still be keeping his feet dry in ten years' time, while the poor man who could only afford cheap boots would have spent a hundred dollars on boots in the same time and would still have wet feet.}%
+            {Capt. Samuel Vimes}
+\mgllettrine{findent=-1.2em,nindent=0.8em,slope=0.9em}{A}{s language}
+modelling has been progressing immensely towards genuinely useful applications driven by the increased availability of data and computational resources, our understanding and tools have not kept pace.
+On the one hand, it  is usual for understanding to lag behind practice; on the other, often a steep price is to be paid for letting practice race too far ahead.
+A trained language model is the product of the interactions of data, optimization, the training objective, regularization, and the model itself, which not only provide rich veins for research individually but combine to create significant complexity, which hampers progress.
+This thesis pursues advances along these directions to solidify the footing and our understanding of the model and the process of its training in hopes of guiding research and applications towards better solutions.
+
+
+\chapter*{Impact Statement}
+
+\mglepigraph{0.46}{We don't measure our success by results but by activity, and the activity is considerable and productive.}{Sir Humphrey Appleby}
+\mgllettrine{lhang=0.05,findent=-0.3em,nindent=0.5em}{G}{oals and contributions}
+of this thesis include designing better recurrent neural networks and new methods of optimization as well as inference in latent variable models, with a focus on advancing language models.
+Recurrent neural networks are state-of-the-art models in small-scale language modelling and various other domains.
+We improve them even further, which has the most direct impact on machine learning practitioners.
+Ironically, the practice of language modelling is currently dominated by attention-based models due to their scalability, optimizability and the importance of training on large amounts of data.
+Can recurrent models match them with enough resources?
+We take a small step towards answering this question by scaling recurrent models with the help of our proposed optimization algorithm.
+We demonstrate that the improved recurrent models are capable of matching attention-based models on bigger --~but still tiny by today's standards~-- datasets.
+Finding that the gap between these models is not nearly as large as previously believed, we turn our attention to other ways of improvement.
+We hope to inject structure and useful biases into the model with conditional independence assumptions and the shaping of the latent space, but posterior collapse gets in the way.
+To address this, we introduce a new inference method for latent variable models, opening the door for this class of generative models to be used successfully in practice.
+While the focus of this thesis is very specific, all of our contributions are applicable beyond language modelling.
+
+
+\chapter*{Acknowledgements}
+
+First and foremost, I would like to thank my supervisors, Phil Blunsom, Chris Dyer, and Thore Graepel, for instilling a coherent, deeply probabilistic worldview in me, for letting me find my own way in research but guiding me through the PhD process.
+I thank DeepMind for being a great working environment for so long and for sponsoring my studies at UCL.
+I am especially grateful to my collaborators and colleagues over the years, who furnished me with insight, valuable feedback, and the Oxford comma.\\
+
+\noindent
+\textit{Végül, de nem utolsósorban, köszönöm szűkebb családomnak a bíztatást, hogy a doktorit kezdjem el, majd hogy fejezzem be.
+Legvégül talán köszönöttel tartozom azoknak, akik értékeiket belém plántálták, és egész biztosan hálával azoknak, akik megértésükkel, támogatásukkal, tudásukkal segítettek: szüleimnek, Hernádi Zsuzsa tanárnőnek, és a Toldy Ferenc gimnázium tanárainak.}
+
+
+%% %% This chapter is for the official submission only.
+%% \chapter*{UCL Research Paper Declaration}
+%% 
+%% \begin{enumerate}
+%% \item \textbf{Published manuscript}
+%%   \begin{itemize}
+%%   \item \textbf{Title:} Mogrifier LSTM
+%%   \item \textbf{Link:} \url{https://openreview.net/forum?id=SJe5P6EYvS}
+%%   \item \textbf{Published at:} ICLR
+%%   \item \textbf{Published by:} OpenReview
+%%   \item \textbf{Publishing date:} 2020
+%%   \item \textbf{Authors:} Gábor Melis, Tom{\'a}{\v{s}} Ko{\v{c}}isk{\`y}, Phil Blunsom
+%%   \item \textbf{Peer reviewed?} Yes
+%%   \item \textbf{Have you retained the copyright?} Yes
+%%   \item \textbf{Preprint:} \url{https://arxiv.org/abs/1909.01792}.
+%%   \item \textbf{Statement of contribution of all authors:}
+%%     I did most of the work; my coauthors suggested experiments and provided feedback.
+%%   \item \textbf{Thesis chapter:} \Cref{sec:timid-transformation}
+%%   \item \textbf{E-signatures confirming that the information above is accurate}
+%%     \begin{ground}
+%%       \vspace{12pt}
+%%       \hspace{4em}\includegraphics[width=0.8\textwidth]{figure/signature1.png}
+%%     \end{ground}
+%%   \end{itemize}
+%% \clearpage
+%% 
+%% \item \textbf{Unpublished manuscript}
+%%   \begin{itemize}
+%%   \item \textbf{Title:} Two-Tailed Averaging: Anytime, Adaptive, Once-in-a-While Optimal Weight Averaging for Better Generalization
+%%   \item \textbf{Preprint:} \url{https://arxiv.org/abs/2209.12581}
+%%   \item \textbf{To be published at:} Not decided
+%%   \item \textbf{Authors:} Gábor Melis
+%%   \item \textbf{Stage of publication:} None
+%%   \item \textbf{Thesis chapter:} \Cref{sec:optimization-oomph}
+%%   \item \textbf{E-signatures confirming that the information above is accurate}
+%%     \begin{ground}
+%%       \vspace{9pt}
+%%       \hspace{4em}\includegraphics[width=0.6\textwidth]{figure/signature2.png}
+%%     \end{ground}
+%%   \end{itemize}
+%% \vspace{\groundskip}
+%% 
+%% \item \textbf{Unpublished manuscript}
+%%   \begin{itemize}
+%%   \item \textbf{Title:} Circling Back to Recurrent Models of Language
+%%   \item \textbf{Preprint:} \url{https://arxiv.org/abs/2211.01848}
+%%   \item \textbf{To be published at:} Not decided
+%%   \item \textbf{Authors:} Gábor Melis
+%%   \item \textbf{Stage of publication:} None
+%%   \item \textbf{Thesis chapter:} \Cref{sec:refining-recurrences}
+%%   \item \textbf{E-signatures confirming that the information above is accurate}
+%%     \begin{ground}
+%%       \vspace{8pt}
+%%       \hspace{4em}\includegraphics[width=0.6\textwidth]{figure/signature3.png}
+%%     \end{ground}
+%%   \end{itemize}
+%% \clearpage
+%% 
+%% \item \textbf{Published manuscript}
+%%   \begin{itemize}
+%%   \item \textbf{Title:} Mutual Information Constraints for Monte-Carlo Objectives to Prevent Posterior Collapse Especially in Language Modelling
+%%   \item \textbf{Link:} \url{https://www.jmlr.org/papers/v23/20-1358.html}
+%%   \item \textbf{Published at:} JMLR
+%%   \item \textbf{Published by:} JMLR
+%%   \item \textbf{Publishing date:} 2022
+%%   \item \textbf{Authors:} Gábor Melis, András György, Phil Blunsom
+%%   \item \textbf{Peer reviewed?} Yes
+%%   \item \textbf{Have you retained the copyright?} Yes
+%%   \item \textbf{Preprint:} No
+%%   \item \textbf{Statement of contribution of all authors:}
+%%     I did most of the work; my coauthors suggested improvements, experiments and provided feedback.
+%%   \item \textbf{Thesis chapter:} \Cref{sec:lax-latents}
+%%   \item \textbf{E-signatures confirming that the information above is accurate}
+%%     \begin{ground}
+%%       \vspace{8pt}
+%%       \hspace{4em}\includegraphics[width=0.8\textwidth]{figure/signature4.png}
+%%     \end{ground}
+%%   \end{itemize}
+%% \end{enumerate}
+%% \clearpage
+
+%% \chapter*{Publications}
+%% 
+%% \begin{itemize}[leftmargin=1em,labelindent=2em,itemindent=-1em]
+%% \item[] Gábor Melis, Tom{\'a}{\v{s}} Ko{\v{c}}isk{\`y}, Phil Blunsom. Mogrifier LSTM, \emph{International Conference on Learning Representations, 2020}.\\
+%% \item[] Gábor Melis. Two-Tailed Averaging: Anytime Adaptive Once-in-a-while Optimal Weight Averaging for Better Generalization, \emph{arXiv preprint arXiv:2209.12581, 2022}.\\
+%% \item[] Gábor Melis. Circling Back to Recurrent Models of Language, \emph{arXiv preprint arXiv:\allowbreak{}2211.01848, 2022}.
+%% \item[] Gábor Melis, András György, Phil Blunsom. Mutual Information Constraints for Monte-Carlo Objectives to Prevent Posterior Collapse Especially in Language Modelling, \emph{Journal of Machine Learning Research, 2022}.\\
+%% \end{itemize}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\listoffigures
+\listoftables
+
+\chapter{Concerning Language}
+\label{sec:concerning-language}
+
+\widowpenalty=10000
+\clubpenalty=10000
+
+\mglepigraph{0.40}{So, to you, language is more than just a means of communication? Oh, of course it is, of course it is, of course it is, of course it is.}{Fry \& Laurie}
+\mgllettrine{findent=-1.3em,nindent=1.8em}{L}{anguage}
+may not be fundamental for intelligence, but it is at the very least an expression of the higher-level cognitive abilities of humans and forms the communication substrate of our society.
+We capture thought (e.g.\ knowledge, abstractions, plans) in words, creating projections of our inner realities, which in turn are affected by sensory input.
+These projections retain only the interesting bits --~those worth saying~-- thus we end up with a highly compressed representation of thought.
+To decode and understand this compressed form, humans rely on shared syntax and semantics.
+While the demarcation between syntax and semantics is fuzzy, they roughly correspond to rules of forming grammatical sentences and to grounding meaning in sensory experiences.
+\looseness=-1
+
+%% The importance of language for machines
+For machines to assist and interact with humans, it is natural to assume that they must understand and produce natural language, which after all evolved for this purpose.\footnote{This is nonetheless an assumption because other means of human--machine communication may be possible.}
+To address differences between sensory experiences of machines and people, grounding semantics in real or simulated environments has been pursued for many years \citep{winograd1973understanding,hermann2017grounded}.
+Clearly, this is a necessary step towards humanlike intelligence.
+
+On the other hand, addressing the issue of grounding is unlikely to achieve this goal in itself as there are indications that child language acquisition is much more efficient \citep{cristia2017child, pullum2002empirical, shneidman2012language} and robust to sensory deprivation.
+Furthermore, machines generalize with low sample efficiency \citep{hoffmann2022training, wei2022emergent, belinkov2017synthetic, jia2017adversarial, iyyer2018adversarial, moosavi2017lexical, agrawal2016analyzing} due to the lack of systematicity \citep{dziri2023faith, kuncoro2018lstms} and their limited ability to chunk input sequences into meaningful units \citep{cao-rimell-2021-evaluate,bostrom-durrett-2020-byte,wang2017sequence}.
+
+Sandwiched between the proof of existence of better models in the form of children's language acquisition \citep{cristia2017child,pullum2002empirical} and the evidence for severe shortcomings of our current crop of models is the reason for focussing on pure language modelling before turning to semantics and the grounding problem.
+In this work, we simply ask how generalization can be improved and what is necessary to create better models of language.
+For the most part, our methodology will be highly quantitative: we evaluate on held-out data in standard language modelling datasets, while providing theoretical underpinnings where possible.
+
+\section{Language Modelling}
+
+Modelling language means having an approximate idea of how plausible a given piece of text is and being able to generate plausible looking text from scratch or continue from a prompt.
+Language models (LMs, for short) work primarily on the symbolic level, and the ones we are considering have no other perceptual modality.
+
+More formally, statistical language models approximate a possibly unknown true distribution $p^\star(x)$ by assigning probabilities $p(x)$ to possible utterances $x \in \cX$.
+The utterances (e.g.\ sentences or documents) are sequences of tokens $x_1, \dots, x_{n_x}$ from a finite set of symbols (e.g.\ words or characters) called the vocabulary.
+These models are \emph{generative} in the sense that they define a data generating process, from which new data points can be sampled.
+
+In autoregressive LMs, $p(x)$ is factorized as $\prod_{i=1}^{n_x} p(x_i\tmid x_{<i})$.
+These models can directly support typeahead prediction and also spell checking when combined with search.
+In other tasks, such as image labelling or machine translation, where additional information is available, the probabilities of utterances are modelled conditioned on their context (e.g.\ the image or the source document).
+
+Note that the evaluation of $p(x)$ need not be tractable for learning and for some applications.
+In fact, it is defined only implicitly in GANs \citep{goodfellow2014generative}, which instead rely on samples from $p(x)$ and approximate expectations based on them \citep{huszar2017variational}.
+Whether masked language models such as BERT \citep{devlin2018bert} implicitly define a probability distribution over utterances is still an open question although \citet{goyal2021exposing} strongly suggest that they do.
+
+Instead of modelling the probability of utterances $p(x)$ directly, one may introduce unobserved variables into the model.
+The reason for doing so is to gain an explicit representation of some properties of the data -- exactly which properties depends on the choice of prior, the conditional independence assumptions made, the biases of the the likelihood, and the details of optimization.
+With latent variables $z$, the marginal likelihood is $p(x) = E_{z \sim p(z)} p(x\tmid z)$, and learning typically involves an approximation to this expectation, which makes the optimization problem harder.
+On the other hand, the explicit representation of the data provided by latent variables may be useful for learning about the underlying generative process, discovering structure in the data, principled representation learning, and improving generalization.
+Unfortunately, in the domain of language models, latent variable models that extract useful representations in the latents have trouble modelling the data.
+Conversely, latent variable models that model the data well capture very little information about data in the latents.
+
+In the following, we introduce some examples of autoregressive models with tractable likelihoods and no latent variables.
+
+\section{N-gram Models}
+
+Recall that autoregressive models decompose the probability of an utterance into the product of the probabilities of next token predictions given the preceding ones: $p(x)=\prod_{i=1}^{n_x}p(x_i\tmid x_{<i})$.
+A simple choice for $p(x_i\tmid x_{<i})$ is the proportion of cases when the prefix $x_{<i}$ is followed by $x_i$:
+{\def\groundprop{1.6}
+\begin{equation*}
+p(x_i\tmid x_{<i}) = \frac{C(x_1, \dots, x_{i-1}, x_i)}{C(x_1, \dots, x_{i-1})},
+\end{equation*}}%
+where the counts $C$ are computed over the training corpus.
+This corresponds to taking a maximum likelihood estimate, which is overconfident in general.
+
+More concretely, one problem with the above definition is that in many cases one or both counts may be zero.
+The denominator is zero when no documents in the training corpus start with the prefix $x_1, \dots, x_i$.
+To somewhat alleviate this problem of sparsity, N-gram models assume that a token depends on only the preceding $N$ tokens, that is $p(x_i\tmid x_{<i})=p(x_i\tmid x_{i-N}, \dots, x_{i-1})$.
+Even with this modification, the sparsity of observations in the training corpus can easily lead to zero counts especially with large vocabularies.
+To combat this, various smoothing techniques may be applied to the raw counts, some of which have interpretations as introducing a prior and performing MAP inference.
+
+The simplest smoothing method hallucinates some observations by adding 1 to each count in the enumerator and $V$ (the vocabulary size) to the denominator to keep the probabilities normalized:
+{\def\groundprop{1.6}
+\begin{equation*}
+p(x_i\tmid x_{<i}) = \frac{C(x_1, \dots, x_{i-1}, x_i)+1}{C(x_1, \dots, x_{i-1})+V}.
+\end{equation*}}%
+In practice, this simplistic method is outperformed by more complex alternatives, among which the Kneser--Ney method \citep{ney1994structuring} is perhaps the most well-known, and whose Interpolated Kneser--Ney smoothing variant can be interpreted as performing approximate inference in a hierarchical Bayesian model consisting of Pitman--Yor processes \citep{teh2006bayesian}.
+
+Two significant drawbacks of N-gram models are poor generalization and very high storage requirements for the counts.
+There are at most $V^N$ counts to store, and while this upper bound is overly pessimistic due to the effective branching factor being much smaller than $V$, it is still high enough that storage becomes a serious concern, hence $N$ cannot be very high.
+For poor generalization the reason is twofold.
+One is that the very independence assumption that allows us to disregard prefixes longer than $N$ throws away lots of useful information.
+Another reason is simply sparsity: for N-grams to be considered the same, all tokens in them must match exactly.
+N-gram models do not leverage similarity of words; \emph{dog returns}, \emph{collie returns}, and \emph{Lassie returns} are very different bigrams, never mind more complicated rephrasings such as \emph{rough collie comes home}.
+
+\section{Recurrent Neural Networks}
+
+Recurrent nets address both of these issues: the length of the context is unbounded in theory, and they not only learn word similarities from data but also smooth over different phrasings and grammatical constructions.
+
+Elman networks \citep{elman1990finding} are an early example of recurrent networks.
+Given an input $\vx_t$ at time step $t$, they maintain and update the hidden state $\vh_t$ over time, from which the output $\vy_t$ is computed:
+\begin{align*}
+\vh_t &= \sigma^h\big(\mW^{hx} \vx_t + \mW^{hh} \vh_{t-1} + \vb^h\big)  \\
+\vy_t &= \sigma^y\big(\mW^{yh} \vh_t + \vb^y\big).
+\end{align*}
+$\mW^*$ are weight matrices, $\vb^*$ are bias vectors, and $\sigma^*$ are activation functions such as $\tanh$.
+\footnote{We denote vectors and matrices with lower- and uppercase bold letters, standard and other sets with blackboard and calligraphic uppercase letters such as $\Rb$ and $\cX$, respectively.}
+In their groundbreaking work, \citet{mikolov2010recurrent} apply Elman networks to language modelling.
+They assign a fixed-size, learnable vector to each word in the vocabulary and present this vector as the input $\vx_t$.
+The output is a categorical distribution over the vocabulary whose parameters are computed by $\sigma^y$, which is the softmax function, and the network is trained with backpropagation on the cross-entropy loss between the predicted categorical distribution and the data distribution for each time step.
+
+Elman networks suffer from exploding and vanishing gradients \citep{philipp2017exploding}, where the magnitude of the partial derivative of the hidden-to-hidden transition matrix $\mW^{hh}$ either tends to infinity or to zero with more time steps taken.
+Exploding and vanishing gradients make training unstable and slow, respectively.
+When the spectral radius of $\mW^{hh}$ is greater than $1$, Elman networks tend to exhibit exploding gradients, while radiuses less than $1$ lead to vanishing gradients, which make long-range dependencies very difficult to learn.
+LSTMs \citep{hochreiter1997long} make the vanishing gradients problem less severe by updating the cell state additively, as in a residual network \citep{he2016deep}.
+LSTMs also introduce a forget gate \citep{hochreiter1997lstm}, which controls the retention policy of the state.
+%% The LSTM update is performed as
+%% \begin{equation}
+%% \label{eq:lstm}
+%% \begin{split}
+%%   \vf_t &= \sigma\big(\mW^{fx} \vx_t + \mW^{fh} \vh_{t-1} + \vb^f\big) \\
+%%   \vi_t &= \sigma\big(\mW^{ix} \vx_t + \mW^{ih} \vh_{t-1} + \vb^i\big) \\
+%%   \vj_t &= \tanh\big(\mW^{jx}\vx_t + \mW^{jh} \vh_{t-1} + \vb^j\big) \\
+%%   \vo_t &= \sigma\big(\mW^{ox} \vx_t + \mW^{oh} \vh_{t-1} + \vb^o\big) \\
+%%   \vc_t &= \vf_t \odot \vc_{t-1} + \vi_t \odot \vj_t \\
+%%   \vh_t &= \vo \odot \tanh\big(\vc_t\big),
+%% \end{split}
+%% \end{equation}
+%% where $\sigma$ is the logistic function, $\vf$, $\vi$, $\vo$ are the forget, input and output gates, while $\vc$ and $\vh$ are the cell and the hidden states.
+This more elaborate mechanism makes it easier to learn longer-term dependencies.
+
+Many other recurrent networks have been invented.
+GRUs \citep{chung2015gated} simplify the gating mechanism of LSTMs, Unitary Evolution RNNs \citep{arjovsky2016unitary} fix the eigenvalues of the hidden-to-hidden transition matrix at 1 to deal with exploding and vanishing gradients.
+To improve performance on parallel hardware such as GPUs, quasi-recurrent neural networks \citep{bradbury2016quasi} apply convolutional layers in parallel across time steps and alternate them with minimalist recurrent pooling layers, making these models almost entirely feed-forward.
+
+In summary, RNNs promised long-range dependencies, better generalization, and reduced storage requirements.
+Despite the clear advancement in all three over N-gram models, there remains room for improvement.
+In particular, dependencies of over several hundred time steps are still very difficult to learn due to vanishing gradients along the long paths the gradient has to travel, large amounts of data are necessary for learning, and recurrent architectures are a bad match for contemporary parallel hardware.
+
+\section{Feed-Forward Neural Networks}
+
+The gated convolutional network of \citet{dauphin2017language} was the first feed-forward model competitive with RNNs.
+Since then, Transformers \citep{vaswani2017attention} forwent both recurrence and convolutions in favour of self-attention \citep{bahdanau2014neural} over a fixed-size window of tokens.
+In its simplest form, self-attention is simply a reweighting of a sequence of input vectors based on their similarity to the most recent one:
+\begin{align*}
+\va_t = \sum^t_{i = t - N} \alpha_i \vh_i.
+\end{align*}
+In the above, the input $\vh$ is a sequence of vectors, and its most recent $N+1$ values are reweighted to produce $\va_t$ according to $\mathbf{\alpha}$, which may computed as
+\begin{align*}
+\alpha_i = \frac{e^{\vh_t^T \vh_i}}{\sum^t_{i=t-N}e^{\vh_t^T \vh_i}},
+\end{align*}
+where the dot products $\vh_t^T \vh_i$ measure the similarity between $\vh_t$ and $\vh_i$.
+
+In a sense, self-attention routes information over data-dependent pathways.
+While naive self-attention has a cost that is quadratic in length of the input, its computation is a better fit for parallel hardware.
+Ironically, by giving up the theoretical possibility of unbounded receptive fields, the shortened gradient paths allow attention-based models to learn dependencies over thousands of time steps.
+
+
+\section{Generating Text}
+
+Although this thesis is not directly concerned with generating text from language models, we provide a short overview of the topic.
+Language models assign a probability $p(x)$ to utterances $x \in \cX$.
+These probabilities can be used, for example, to rerank candidate answers provided by another system according to their probabilities under the model.
+In addition to evaluating probabilities, most language models can generate text, and they do it by sampling from $p$.
+For an auto-regressive model, ancestral sampling is both natural and easy: the first token is sampled as $x_1 \sim p(X_1)$, the second as $x_2 \sim p(X_2\tmid x_1)$, the third as $x_3 \sim p(X_3\tmid x_1,x_2)$, and so on.
+While this method samples from $p$, our model, that may not always be desirable.
+To compensate for the shortcomings of the model, to control the diversity of a set of samples, or to adapt generation to a particular task, one may wish to sample from a related distribution.
+
+A basic method to control diversity is tuning the temperature $T > 0$ of the predictive distribution over the next token:
+\begin{align*}
+p^{(T)}_i = \frac{p_i^{\nicefrac{1}{T}}}{\sum^V_{i=1}p_i^{\nicefrac{1}{T}}},
+\end{align*}
+where $p_i$ denotes the predicted probability of token $i$ in the vocabulary.
+Here, $T=1$ leaves the predictions $p_i$ unchanged.
+Choosing a large temperature smooths their distribution towards uniform, while going with a low temperature hardens it: more probability mass is assigned to the most likely token type at the cost of the rest.
+In practice, the temperature is often lowered below 1 to discourage generating from the tails of the distribution.
+On the surface, this just trades off diversity for better looking samples, but if model quality is poorer on the tails of the ground truth distribution, and it often is, then it can be considered a form of filtering.
+
+When the vocabulary size is big, the temperature may need to be decreased substantially to reduce the likelihood of generating from the tail, but that may upset the relative probabilities of non-tail events, which are more likely to be well-calibrated.
+A number of methods address this issue by truncating the predictive distribution over the next token by assigning zero probability to the least likely events and renormalizing.
+\begin{itemize}
+\item \emph{Top-k sampling}: only the most likely $k$ token types are kept \citep{fan2018hierarchical}.
+\item \emph{Nucleus sampling}: only the most likely token types with a given total probability are kept. \citep{holtzman2019curious}.
+\item \emph{$\eta$-sampling}: a generalization of nucleus sampling, where the total probability threshold is adjusted based on the entropy of the predictive distribution \citep{hewitt2022truncation}.
+\end{itemize}
+
+These methods enjoy empirical success, but they can also be seen to compensate for model deficiencies.
+\Citet{braverman2020calibration} take another approach: they argue that the maximum likelihood objective used to train language models is equivalent to minimizing the KL divergence of the predicted and empirical one-step distributions, but multi-step generations from the model can still be bad because this one-step KL leads to a rather loose bound on the expected risk over generations.
+They propose a calibration method to bring the entropy of generations closer to the entropy of data, and their solution is superficially reminiscent of temperature tuning but also guaranteed not to make model perplexity worse.
+This can be achieved by other means; motivated by observations from psycholinguistics, locally typical sampling \citep{meister2022typical} also controls the entropy of generations.
+
+
+\section{The Case for Small-Scale}
+
+A recurring theme in the history of sequence models is that the problem of model design is intermingled with optimizability and scalability.
+Elman Networks are notoriously difficult to optimize, a property that not only gave birth to the idea of the LSTM but also to more recent models such as the Unitary Evolution RNN \citep{arjovsky2016unitary} and fixes like gradient clipping \citep{pascanu2013difficulty}.
+Still, it is far from clear --~if we could optimize these models well~-- how different their biases would turn out to be.
+The non-separability of model and optimization is fairly evident in these cases.
+
+Scalability, on the other hand, is often optimized for indirectly.
+Given the limited ability of current models to generalize, we often compensate by throwing more data at the problem.
+To fit a larger dataset, model size must be increased.
+Thus the best performing models are evaluated based on their scalability. %% \footnote{Note that the focus on scalability is \emph{not} a problem per se. Indeed the unsupervised pretraining methods \citep{peters2018deep,devlin2018bert} take great advantage of this approach.}
+Today, scaling up still yields tangible gains on down-stream tasks, and language modelling data is abundant.
+However, we believe that simply scaling up will not solve the generalization problem and better models will be needed.
+Our hope is that by choosing small enough datasets, so that model size is no longer the limiting factor, we get a number of practical advantages:
+\begin{itemize}
+\item Generalization ability will be more clearly reflected in evaluations.
+\footnote{Utterances are generated by a complex, non-stationary process (the world), but empirical risk minimization requires i.i.d. samples.
+Disregarding the time component for a minute, we have only non-independent samples even when considering all the text available on the internet.
+Thus, a natural approach to measure generalization ability is in a domain adaptation setting where we assume i.i.d. samples within a domain and domains being sampled i.i.d. themselves, but that requires multiple delimited datasets.
+Time aggravates the problems caused by the i.i.d. assumption.}
+\item Turnaround time in experiments will be reduced, and the freed up computational budget can be put to good use by controlling for nuisance factors.
+\item The transient effects of changing hardware performance characteristics are somewhat lessened \citep{DBLP:journals/corr/abs-2009-06489}.
+\end{itemize}
+On the flipside, we give up the opportunity of studying interesting phenomena such as emergence \citep{wei2022emergent} and in-context learning \citep{lampinen2022incontext} that seem to occur only beyond a certain scale.
+Despite the obvious risk this represents, we find the tradeoff worthwhile and complementary to mainstream contemporary research.
+Thus, we develop, analyze and evaluate models primarily on small datasets.
+Evaluation on larger datasets is included to learn more about the models' scaling behaviour and because of its relevance for applications, but it is to be understood that these evaluations come with larger error bars and provide less guidance for further research on better models.
+
+\mglsep
+
+
+\chapter{Timid Transformation}
+\label{sec:timid-transformation}
+
+\mglepigraph{0.34}{I'm disappointed too, but keep in mind transmogrification is a new technology.}{Calvin \& Hobbes}
+\mgllettrine{lhang=0.25,findent=0.2em,nindent=-0.8em}{T}{he domination}
+of natural language processing by neural models is hampered only by their questionable sample complexity \citep{hoffmann2022training,wei2022emergent,belinkov2017synthetic,jia2017adversarial,iyyer2018adversarial,moosavi2017lexical,agrawal2016analyzing},
+their lack of systematicity \citep{dziri2023faith,linzen2016assessing,kuncoro2018lstms} and their limited ability to chunk input sequences into meaningful units
+\citep{cao-rimell-2021-evaluate,bostrom-durrett-2020-byte,wang2017sequence}.
+
+\input{mogrifier/mogrifier.tex}
+
+
+\chapter{Optimization Oomph}
+\label{sec:optimization-oomph}
+
+\mglepigraph{0.3}{It's not much of a tail, but I'm sort of attached to it.}{A.A. Milne}
+\mgllettrine{findent=-0.2em,nindent=0.4em}{M}{ogrification}
+proved surprisingly powerful, but it comes with a performance penalty.
+With thorough hyperparemeter tuning (a prerequisite of reliable model evaluation), this penalty and the already high base cost of the LSTM must be paid hundreds of times.
+Scaling to larger datasets makes this process even more resource intensive.
+
+More generally, when training a single model is expensive, there are fewer resources left for exploring the design and hyperparameter space, which compromises our ability to develop with speed and evaluate with accuracy.
+The exploration is difficult if the space is large and wrinkled, thus the number of hyperparameters and the sensitivity of the results to them is of high practical importance (see \Cref{sec:hyperparameter-tuning-ranges} and \Cref{sec:hyperparameter-sensitivity}).
+One particularly important hyperparameter is the learning rate.
+Since it often varies during training, the learning rate is not a single but a bunch of hyperparameters that define its schedule.
+Tuning these hyperparameters well is time-consuming yet essential.
+An alternative to scheduling the learning rate is averaging iterates of a stochastic optimizer.
+This technique was already used to train the Mogrifier, and it worked well but not without drawbacks that would get into the way of scaling.
+In the following, we develop an algorithm that approximates the optimal iterate average and which can be used with any stochastic optimizer.
+This will allow us to scale our models and methodology (including the costly hyperparameter tuning) to larger datasets in \Cref{sec:refining-recurrences}.
+
+\input{two-tailed/two-tailed.tex}
+
+
+\chapter{Refining Recurrences}
+\label{sec:refining-recurrences}
+
+\mglepigraph{0.79}{The proverbial German phenomenon of the “verb-at-the-end”, about which droll tales of absentminded professors who would begin a sentence, ramble on for an entire lecture, and then finish up by rattling off a string of verbs by which their audience, for whom the stack had long since lost its coherence, would be totally nonplussed, are told, is an excellent example of linguistic recursion.}{Douglas Hofstadter}
+\mgllettrine{findent=-1.0em,nindent=0.8em,slope=0.8em}{R}{eliable model}
+comparison is crucial for continued innovation in language modelling.
+With so much attention on Transformers \citep{vaswani2017attention}, the development of purely recurrent models has ebbed away.
+It might be tempting to claim that purely recurrent models are fundamentally worse models of language than attention-based ones, but they seem to have an edge on small datasets, while on larger datasets their lack of scalability on current hardware \citep{DBLP:journals/corr/abs-2009-06489} also plays an important role in their evaluation.
+Due to being unfashionable and slow, their fitness might be underestimated especially on all but the smallest datasets with the exception of S4 \citep{gu2021efficiently}, a highly parallelizable, long-range model.
+The purpose of this work is simply to apply more resources to advancing and evaluating recurrent models --~despite, and to compensate for, their computational inefficiency~-- to better represent their performance in future model comparisons.
+
+\input{circling-back/circling-back.tex}
+
+
+\chapter{Lax Latents}
+\label{sec:lax-latents}
+
+\mglepigraph{0.35}{All our words from loose using have lost their edge.}{Ernest Hemingway}
+\mgllettrine{lhang=0.33,findent=0.2em,nindent=-0.5em,slope=-0.5em}{W}{e observed}
+that recurrent and attention-based models perform similarly on small datasets, where differences in model bias should be more readily apparent than at large scale.
+As discussed in \Cref{sec:concerning-language}, there are good reasons to believe that much more data-efficient models exist.
+These factors prompted us to take bolder steps towards equipping our models with a stronger bias.
+While model biases can be altered in several ways (e.g.\ by changing regularization, the optimizer or the data), here we consider adding latent variables and explicitly structuring our models with conditional independence assumptions.
+Our hope is that these two tools provide a rich design space to explore with very direct effects on model biases.
+However, as we will see, training latent variable models at scale is challenging, and the common workhorse, the variational autoencoder, has a tendency to produce degenerate solutions.
+So before we can explore the design space, we must improve the tool.
+
+\input{micmco/micmco.tex}
+
+
+\chapter{Conclusion}
+
+\mglepigraph{0.45}{It is at this point that normal language gives up, and goes and has a drink.}{Terry Pratchett}
+\mgllettrine{lhang=0.05,findent=-0.4em,nindent=0.7em,slope=-0.3em}{O}{ur journey}
+towards better generative models of language ends here.
+On this long and winding road, it was easy to lose sight of the end goal.
+Throughout, our aim was simply to enable building better language models, whether it be by designing architectures, optimization or inference methods.
+As it turns out, our contributions in these areas stand on their own beyond the field of language modelling and even natural language processing.
+The motivation for the Mogrifier was to contextualize input embeddings in language modelling, but its benefits were shown to extend beyond that setting, and it has already seen applications in unrelated fields \citep{zhang2022modality,cui2022end}.
+Two-Tailed Averaging is a technique for making optimization for generalization more efficient.
+It is an easy to use extension on top of stochastic optimization, which we hope will prove to be widely applicable in practice.
+Finally, MICMCO explores the causes of posterior collapse in the context of variational autoencoders and how to address them.
+It brings great improvements in the discrete latent case, opening the door for designing latent variable models in which the latents are less of a hindrance and can be employed to shape the model's bias.
+We hope to see each of these contributions flourish individually.
+
+As to the results, we take them to indicate that recurrent and attention-based architectures are not too different, and further innovation will be needed.
+Latent variable models and conditional independence assumptions offer a principled approach to injecting structure into the model.
+Building upon MICMCO, we plan to pursue this avenue of research further.
+That said, there are other ways of shaping the biases: regularization, tweaking the optimizer, data augmentation and selection, to name just the most obvious ones.
+
+Stepping back, the field of language modelling has changed unrecognizably during the last few years.
+Scaling models to billions of parameters and humongous amounts of data is now routine.
+In that context, recurrent architectures can be seen as irrelevant.
+While it is true that typical recurrent models are considerably slower on contemporary parallel hardware than attention-based ones, decoupling transient hardware characteristics from model evaluation is a worthy goal that serves to further our understanding and inform future research.
+As to the evaluation itself, we have shown that recurrent models are underestimated by simply training longer and better with some help from the Rewired Mogrifier LSTM, outperforming or matching transformers on the small datasets considered.
+But do model biases matter, or is it enough to have lots of data?
+The importance of data is hard to overstate, but we still manage.
+Suppose that our goal is to solve every possible task encodable in language.
+If data and scaling are enough to achieve this goal, then model biases are unimportant.
+In other words, if we can solve an extremely rich class of problems just by overfitting a huge dataset, then model biases do not matter.
+As unlikely as that sounds, we are currently making great advances with just scaling.
+When that stops, research into memory, planning, reasoning, and situated agents will see a resurgence.
+At the same time, model biases will become a pressing concern, and we will once again need to turn back to the fundamental question of model design to push the frontiers.
+
+\mglsep[die.png]
+
+\clearpage
+
+{
+  % The line height is chosen by trial and error so that the first
+  % line of the bibliography lines up with lines on subsequent
+  % bibliography pages.
+  \renewcommand{\bibfont}{
+    \setstretch{1.0}\fontsize{0.9\currentfontsize}{0.797\groundskip}\selectfont
+    \groundlevel}
+  \interlinepenalty=10000
+  \bibliography{paper}
+  \bibliographystyle{plainnat}
+}
+
+
+\clearpage
+\begin{appendices}
+\end{appendices}
+
+
+\end{document}
